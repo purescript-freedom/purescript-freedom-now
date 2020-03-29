@@ -10,15 +10,9 @@ import Effect.Now (nowDateTime)
 import Freedom as Freedom
 import Freedom.Markup as H
 import Freedom.Now (currentTime)
-import Freedom.Subscription (Subscription)
-import Freedom.TransformF.Simple (VQueryF, transformF, reduce)
-import Freedom.VNode (VNode)
+import Freedom.UI (Subscription, VNode)
 
 type State = DateTime
-
-type Sub = Subscription VQueryF State
-
-type Html = VNode VQueryF State
 
 main :: Effect Unit
 main = do
@@ -27,17 +21,17 @@ main = do
     { selector: "#app"
     , initialState: dateTime
     , subscriptions: [ currentTime' ]
-    , transformF
     , view
     }
 
-currentTime' :: Sub
-currentTime' = currentTime (Milliseconds 3000.0) \dateTime -> do
-  reduce $ const dateTime
+currentTime' :: Subscription State
+currentTime' =
+  currentTime (Milliseconds 3000.0) \dateTime query ->
+    query.reduce $ const dateTime
 
-view :: State -> Html
+view :: State -> VNode State
 view dateTime =
-  H.el $ H.div # H.kids
-    [ H.el $ H.h1 # H.kids [ H.t "Now Demo" ]
-    , H.el $ H.p # H.kids [ H.t $ toString $ fromDateTime dateTime ]
+  H.div # H.kids
+    [ H.h1 # H.kids [ H.t "Now Demo" ]
+    , H.p # H.kids [ H.t $ toString $ fromDateTime dateTime ]
     ]
